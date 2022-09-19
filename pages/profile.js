@@ -1,17 +1,24 @@
+import classNames from 'classnames';
 import Head from 'next/head'
 import { useCallback, useState } from 'react';
 import { Avatar } from '~/components/Avatar'
 import { Header } from '~/components/Header'
-import { useUser } from '~/hooks';
+import { Spinner } from '~/components/Spinner';
+import { useUpdateUser, useUser } from '~/hooks';
 
 export default function Home() {
-  const { data: user, update } = useUser()
+  const { data: user } = useUser()
+  const { mutate: updateUser, isLoading: isSaving } = useUpdateUser()
   const [userChanges, setUserChanges] = useState({});
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault()
-    update(userChanges)
-  }, [update, userChanges])
+
+    if (Object.keys(userChanges).length > 0) {
+      updateUser({ id: user.id, ...userChanges }, { onSuccess: () => setUserChanges({}) })
+    }
+
+  }, [updateUser, user, userChanges])
 
   return (
     <>
@@ -72,8 +79,19 @@ export default function Home() {
             />
           </label>
           <div className="flex justify-end pb-4">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
-              Save
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex flex-row items-center gap-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              type="submit"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  Saving
+                  <Spinner className="h-4 w-4" />
+                </>
+              ) : (
+                'Save'
+              )}
             </button>
           </div>
         </form>

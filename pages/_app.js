@@ -1,13 +1,15 @@
-import { useCreateUserContext } from '~/hooks';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import '../styles/globals.css'
 
-function MyApp({ Component, pageProps }) {
-  const UserProvider = useCreateUserContext()
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 10000, refetchOnWindowFocus: false } }})
 
+function MyApp({ Component, pageProps }) {
   return (
-    <UserProvider>
-      <Component {...pageProps} />;
-    </UserProvider>
+    <QueryClientProvider client={queryClient}>
+      <Component {...pageProps} />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   )
 }
 

@@ -1,15 +1,10 @@
-import { useMemo, useState } from 'react'
-import { useQuery } from './useQuery'
+import { useQuery } from '@tanstack/react-query'
 
-export const useBooks = (booksByPage) => {
-  const [currentPage, setCurrentPage] = useState(1)
-  const query = useQuery(`/api/books?take=${booksByPage}&skip=${(currentPage - 1) * booksByPage}`)
-  const pageCount = useMemo(() => Math.ceil(query.count / booksByPage), [query.count, booksByPage])
+const fetchBooks = async ({ queryKey: [,pageSize, currentPage]}) => {
+  const response = await fetch(`/api/books?take=${pageSize}&skip=${(currentPage - 1) * pageSize}`)
+  const books = await response.json()
 
-  return {
-    ...query,
-    pageCount,
-    currentPage,
-    changePage: setCurrentPage,
-  }
+  return { books, booksCount: response.headers.get('X-Total-Count') }
 }
+
+export const useBooks = (booksByPage, currentPage, options) => useQuery(['books', booksByPage, currentPage], fetchBooks, options)
