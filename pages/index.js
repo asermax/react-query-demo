@@ -1,30 +1,23 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Head from 'next/head'
 import { Header } from '~/components/Header'
 import classNames from 'classnames';
+import { useBooks } from '~/hooks';
+import { Spinner } from '~/components/Spinner';
 
 const BOOKS_BY_PAGE = 3
 
 export default function Home() {
-  const [booksCount, setBooksCount] = useState(BOOKS_BY_PAGE)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [books, setBooks] = useState([]);
+  const { data: books, loading, pageCount, currentPage, changePage } = useBooks(BOOKS_BY_PAGE);
 
   const pages = useMemo(() => {
     const result = []
-    for (let i = 1; i <= Math.ceil(booksCount / BOOKS_BY_PAGE); i++) {
+    for (let i = 1; i <= pageCount; i++) {
       result.push(i)
     }
     return result
-  }, [booksCount])
+  }, [pageCount])
 
-  useEffect(() => {
-    const response = fetch(`/api/books?take=${BOOKS_BY_PAGE}&skip=${(currentPage - 1) * BOOKS_BY_PAGE}`);
-    response
-      .then((res) => res.json())
-      .then((books) => setBooks(books));
-    response.then((res) => setBooksCount(res.headers.get('X-Total-Count')));
-  }, [currentPage])
 
   return (
     <>
@@ -36,28 +29,34 @@ export default function Home() {
 
       <main className="bg-gray-200 font-sans leading-normal tracking-normal grow">
         <div className="container px-4 md:px-16 py-12 max-w-6xl mx-auto flex flex-col gap-16">
-          <div className="bg-gray-200 w-full grid md:grid-cols-3 sm:grid-cols-1 gap-16">
-            {books.map((book) => (
-              <div
-                className="flex flex-col shadow-lg hover:scale-105 transition-transform"
-                key={book.id}
-              >
-                <img
-                  src={book.image}
-                  className="h-96 w-full object-cover object-top block"
-                  alt={book.title}
-                />
-                <div className="h-4 bg-slate-300">
-                  <div className="h-full bg-sky-500" style={{ width: `${book.progress}%` }}></div>
+          {!loading ? (
+            <div className="bg-gray-200 w-full grid md:grid-cols-3 sm:grid-cols-1 gap-16">
+              {books?.map((book) => (
+                <div
+                  className="flex flex-col shadow-lg hover:scale-105 transition-transform"
+                  key={book.id}
+                >
+                  <img
+                    src={book.image}
+                    className="h-96 w-full object-cover object-top block"
+                    alt={book.title}
+                  />
+                  <div className="h-4 bg-slate-300">
+                    <div className="h-full bg-sky-500" style={{ width: `${book.progress}%` }}></div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 w-full">
+              <Spinner />
+            </div>
+          )}
           <div className="self-end flex flex-row gap-2">
             <button
               className="bg-gray-400 enabled:hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-l disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
+              onClick={() => changePage(currentPage - 1)}
             >
               &lt;
             </button>
@@ -67,7 +66,7 @@ export default function Home() {
                   "hover:bg-sky-500 text-white font-bold py-2 px-4",
                   { 'bg-sky-500': page === currentPage, 'bg-gray-400': page !== currentPage }
                 )}
-                onClick={() => setCurrentPage(page)}
+                onClick={() => changePage(page)}
                 key={page}
               >
                 {page}
@@ -76,7 +75,7 @@ export default function Home() {
             <button
               className="bg-gray-400 enabled:hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-r disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={currentPage === pages.length}
-              onClick={() => setCurrentPage(currentPage + 1)}
+              onClick={() => changePage(currentPage + 1)}
             >
               &gt;
             </button>

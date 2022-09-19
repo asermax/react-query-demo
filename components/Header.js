@@ -1,15 +1,9 @@
-import { useEffect, useState } from 'react';
 import Link from 'next/link'
 import { Avatar } from './Avatar';
+import { useUser } from '~/hooks';
 
 export const Header = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/me')
-      .then((res) => res.json())
-      .then((user) => setUser(user));
-  }, [])
+  const { data: user } = useUser()
 
   return (
     <header className="z-30 w-full px-2 py-4 bg-white sm:px-4">

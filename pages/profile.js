@@ -1,30 +1,17 @@
 import Head from 'next/head'
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Avatar } from '~/components/Avatar'
 import { Header } from '~/components/Header'
+import { useUser } from '~/hooks';
 
 export default function Home() {
-  const [user, setUser] = useState(null);
+  const { data: user, update } = useUser()
   const [userChanges, setUserChanges] = useState({});
-
-  useEffect(() => {
-    fetch('/api/me')
-      .then((res) => res.json())
-      .then((user) => setUser(user));
-  }, [])
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault()
-    fetch('/api/me', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ...user, ...userChanges }),
-    })
-      .then((res) => res.json())
-      .then((user) => setUser(user));
-  }, [user, userChanges])
+    update(userChanges)
+  }, [update, userChanges])
 
   return (
     <>
