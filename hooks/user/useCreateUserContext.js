@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
-import { useQuery } from './useQuery';
+import { useCallback, useMemo, useState } from 'react';
+import { UserContext } from './context';
+import { useQuery } from '../useQuery';
 
-export const useUser = () => {
+export const useCreateUserContext = () => {
   const { data, ...query } = useQuery('/api/me');
   const [updatedData, setUpdatedData] = useState(null);
 
@@ -17,5 +18,8 @@ export const useUser = () => {
       .then((user) => setUpdatedData(user))
   }, [data])
 
-  return { ...query, data: updatedData ?? data, update }
+  const value = useMemo(() => ({ ...query, data: updatedData ?? data, update }), [data, query, update, updatedData])
+  const UserProvider = (props) => (<UserContext.Provider {...props} value={value} />)
+
+  return UserProvider
 }
